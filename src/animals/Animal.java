@@ -1,7 +1,8 @@
 package animals;
 
-import javafx.scene.canvas.GraphicsContext;
 import game.GameField;
+import javafx.scene.canvas.GraphicsContext;
+
 import java.io.Serializable;
 import java.util.Random;
 
@@ -9,15 +10,12 @@ public abstract class Animal implements Runnable, Serializable {
     protected int x, y;
     protected boolean alive = true;
     protected final Random random = new Random();
-    protected final int fieldWidth;
-    protected final int fieldHeight;
-    protected final GameField gameField;
 
-    public Animal(int x, int y, int fieldWidth, int fieldHeight, GameField gameField) {
+    protected transient GameField gameField;
+
+    public Animal(int x, int y, GameField gameField) {
         this.x = x;
         this.y = y;
-        this.fieldWidth = fieldWidth;
-        this.fieldHeight = fieldHeight;
         this.gameField = gameField;
     }
 
@@ -26,18 +24,12 @@ public abstract class Animal implements Runnable, Serializable {
     public abstract void draw(GraphicsContext gc);
 
     protected void checkBoundary() {
+        int fieldWidth = gameField.getWidth();
+
         if (x < 0) {
-            x = fieldWidth - 1;
             gameField.animalCrossedBoundary(this, Direction.LEFT);
         } else if (x >= fieldWidth) {
-            x = 0;
             gameField.animalCrossedBoundary(this, Direction.RIGHT);
-        } else if (y < 0) {
-            y = fieldHeight - 1;
-            gameField.animalCrossedBoundary(this, Direction.UP);
-        } else if (y >= fieldHeight) {
-            y = 0;
-            gameField.animalCrossedBoundary(this, Direction.DOWN);
         }
     }
 
@@ -45,9 +37,9 @@ public abstract class Animal implements Runnable, Serializable {
     public void run() {
         while (alive) {
             move();
-            checkBoundary(); // Check if the animal crossed a boundary
+            checkBoundary();
             try {
-                Thread.sleep(1000); // Adjust sleep time as needed
+                Thread.sleep(100); // Adjust sleep time as needed
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -61,7 +53,11 @@ public abstract class Animal implements Runnable, Serializable {
     public boolean isAlive() { return alive; }
     public void die() { alive = false; }
 
+    public void setGameField(GameField gameField) {
+        this.gameField = gameField;
+    }
+
     public enum Direction {
-        UP, DOWN, LEFT, RIGHT
+        LEFT, RIGHT
     }
 }

@@ -1,64 +1,98 @@
 package gui;
 
+import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import network.ConnectionHandler;
 
 import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 
-public class StartWindow extends VBox {
-    public StartWindow() {
-        Label ipLabel = new Label("IP Address:");
-        TextField ipField = new TextField("localhost");
+public class StartWindow extends Application {
+
+    @Override
+    public void start(Stage primaryStage) {
+        primaryStage.setTitle("Animal Game Start Window");
+
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(10);
+        grid.setVgap(10);
+
         Label portLabel = new Label("Port:");
-        TextField portField = new TextField("12345");
-        Button connectButton = new Button("Connect");
-        Button waitButton = new Button("Wait for Connection");
+        grid.add(portLabel, 0, 0);
 
-        connectButton.setOnAction(event -> connectToServer(ipField.getText(), Integer.parseInt(portField.getText())));
-        waitButton.setOnAction(event -> waitForConnection(Integer.parseInt(portField.getText())));
+        TextField portTextField = new TextField();
+        grid.add(portTextField, 1, 0);
 
-        GridPane gridPane = new GridPane();
-        gridPane.setAlignment(Pos.CENTER);
-        gridPane.setHgap(10);
-        gridPane.setVgap(10);
-        gridPane.add(ipLabel, 0, 0);
-        gridPane.add(ipField, 1, 0);
-        gridPane.add(portLabel, 0, 1);
-        gridPane.add(portField, 1, 1);
-        gridPane.add(connectButton, 0, 2);
-        gridPane.add(waitButton, 1, 2);
+        Button hostButton = new Button("Host as Left Player");
+        grid.add(hostButton, 0, 1);
 
-        this.setAlignment(Pos.CENTER);
-        this.getChildren().addAll(gridPane);
+        Button connectButton = new Button("Connect as Right Player");
+        grid.add(connectButton, 1, 1);
+
+        Label ipLabel = new Label("IP Address:");
+        grid.add(ipLabel, 0, 2);
+
+        TextField ipTextField = new TextField();
+        grid.add(ipTextField, 1, 2);
+
+        hostButton.setOnAction(event -> {
+            int port = Integer.parseInt(portTextField.getText());
+            new Thread(() -> {
+                try (ServerSocket serverSocket = new ServerSocket(port)) {
+                    Socket socket = serverSocket.accept();
+                    Platform.runLater(() -> {
+                        try {
+                            GameWindow gameWindow = null;
+                            gameWindow = new GameWindow(new ConnectionHandler(socket, gameWindow), true);
+                            gameWindow.show();
+                            primaryStage.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        });
+
+        connectButton.setOnAction(event -> {
+            String ipAddress = ipTextField.getText();
+            int port = Integer.parseInt(portTextField.getText());
+            new Thread(() -> {
+                try {
+                    Socket socket = new Socket(ipAddress, port);
+                    Platform.runLater(() -> {
+                        try {
+                            GameWindow gameWindow = null;
+                            gameWindow = new GameWindow(new ConnectionHandler(socket, gameWindow), false);
+                            gameWindow.show();
+                            primaryStage.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        });
+
+        Scene scene = new Scene(grid, 400, 250);
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
 
-    private void connectToServer(String ipAddress, int port) {
-        try {
-            ConnectionHandler connection = new ConnectionHandler(ipAddress, port);
-            new GameWindow(connection).show();
-            ((Stage) getScene().getWindow()).close();
-        } catch (IOException e) {
-            showError("Connection failed");
-        }
-    }
-
-    private void waitForConnection(int port) {
-        try {
-            ConnectionHandler connection = new ConnectionHandler(port);
-            new GameWindow(connection).show();
-            ((Stage) getScene().getWindow()).close();
-        } catch (IOException e) {
-            showError("Waiting for connection failed");
-        }
-    }
-
-    private void showError(String message) {
-        // Show error dialog
+    public static void main(String[] args) {
+        launch(args);
     }
 }

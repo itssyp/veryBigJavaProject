@@ -7,10 +7,7 @@ public class SheepGame extends Application {
     @Override
     public void start(Stage primaryStage) {
         StartWindow startWindow = new StartWindow();
-        Scene scene = new Scene(startWindow, 400, 300);
-        primaryStage.setTitle("Animal Game");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        startWindow.start(primaryStage);
     }
 
     public static void main(String[] args) {

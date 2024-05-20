@@ -11,15 +11,20 @@ import java.util.Random;
 
 public class GameField {
     private ConcurrentHashMap<Point, Animal> animals = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Point, Boolean> walls = new ConcurrentHashMap<>();
     private final int width;
     private final int height;
     private final Random random = new Random();
-    private final GameWindow gameWindow;
 
-    public GameField(int width, int height, GameWindow gameWindow) {
+    private transient GameWindow gameWindow;
+
+    private final boolean isLeftPlayer; // To differentiate between left and right players
+
+    public GameField(int width, int height, GameWindow gameWindow, boolean isLeftPlayer) {
         this.width = width;
         this.height = height;
         this.gameWindow = gameWindow;
+        this.isLeftPlayer = isLeftPlayer;
     }
 
     public void addAnimal(Animal animal) {
@@ -28,29 +33,22 @@ public class GameField {
         new Thread(animal).start(); // Start a new thread for each animal
     }
 
+    public void addWall(int x, int y) {
+        Point position = new Point(x, y);
+        walls.put(position, true);
+    }
+
+    public boolean isWall(int x, int y) {
+        return walls.containsKey(new Point(x, y));
+    }
+
     public void animalCrossedBoundary(Animal animal, Animal.Direction direction) {
-        int newX = animal.getX();
-        int newY = animal.getY();
+        if ((direction == Animal.Direction.LEFT && !isLeftPlayer) || (direction == Animal.Direction.RIGHT && isLeftPlayer)) {
+            int newX = (direction == Animal.Direction.LEFT) ? width - 1 : 0;
+            animal.setX(newX);
 
-        switch (direction) {
-            case LEFT:
-                newX = width - 1;
-                break;
-            case RIGHT:
-                newX = 0;
-                break;
-            case UP:
-                newY = height - 1;
-                break;
-            case DOWN:
-                newY = 0;
-                break;
+            gameWindow.addAnimalToOtherField(animal, newX, animal.getY());
         }
-
-        animal.setX(newX);
-        animal.setY(newY);
-
-        gameWindow.addAnimalToOtherField(animal, newX, newY);
     }
 
     public void updateField() {
@@ -79,17 +77,30 @@ public class GameField {
         for (int i = 0; i < numSheep; i++) {
             int x = random.nextInt(width);
             int y = random.nextInt(height);
-            addAnimal(new Sheep(x, y, width, height, this));
+            addAnimal(new Sheep(x, y, this));
         }
 
         for (int i = 0; i < numWolves; i++) {
             int x = random.nextInt(width);
             int y = random.nextInt(height);
-            addAnimal(new Wolf(x, y, width, height, this));
+            addAnimal(new Wolf(x, y, this));
         }
     }
 
     public ConcurrentHashMap<Point, Animal> getAnimals() {
         return animals;
     }
+
+    public ConcurrentHashMap<Point, Boolean> getWalls() {
+        return walls;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+    public int getWidth() {
+        return width;
+    }
+
+
 }

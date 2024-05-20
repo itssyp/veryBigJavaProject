@@ -5,18 +5,20 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 public class Sheep extends Animal {
-    public Sheep(int x, int y, int fieldWidth, int fieldHeight, GameField gameField) {
-        super(x, y, fieldWidth, fieldHeight, gameField);
+    public Sheep(int x, int y, GameField gameField) {
+        super(x, y, gameField);
     }
 
     @Override
     public void move() {
         // Randomly move sheep to adjacent position
         if (!alive) return;
-        int dx = random.nextInt(3);
-        int dy = random.nextInt(3);
-        //x = Math.max(0, x + dx); // Ensure x stays within bounds
-        //y = Math.max(0, y + dy); // Ensure y stays within bounds
+        int dx = random.nextInt(3) - 1;
+        int dy = random.nextInt(3) - 1;
+        if (!gameField.isWall(x + dx, y + dy)) {
+            x = x + dx; // Ensure x stays within bounds
+            y = Math.max(0, Math.min(gameField.getHeight(), y + dy)); // Ensure y stays within bounds
+        }
     }
 
     @Override

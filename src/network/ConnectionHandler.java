@@ -1,43 +1,42 @@
 package network;
 
-import java.io.*;
-import java.net.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.awt.Point;
 import animals.Animal;
+import gui.GameWindow;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 
-public class ConnectionHandler {
+public class ConnectionHandler extends Thread {
     private Socket socket;
-    private ObjectInputStream input;
-    private ObjectOutputStream output;
+    private ObjectOutputStream outputStream;
+    private ObjectInputStream inputStream;
+    private GameWindow gameWindow;
 
-    public ConnectionHandler(String ipAddress, int port) throws IOException {
-        socket = new Socket(ipAddress, port);
-        setupStreams();
+    public ConnectionHandler(Socket socket, GameWindow gameWindow) throws IOException {
+        this.socket = socket;
+        this.gameWindow = gameWindow;
+        this.outputStream = new ObjectOutputStream(socket.getOutputStream());
+        this.inputStream = new ObjectInputStream(socket.getInputStream());
     }
 
-    public ConnectionHandler(int port) throws IOException {
-        ServerSocket serverSocket = new ServerSocket(port);
-        socket = serverSocket.accept();
-        setupStreams();
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                Object receivedObject = inputStream.readObject();
+                if (receivedObject instanceof Animal) {
+                    Animal receivedAnimal = (Animal) receivedObject;
+                    gameWindow.handleReceivedAnimal(receivedAnimal);
+                }
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void setupStreams() throws IOException {
-        output = new ObjectOutputStream(socket.getOutputStream());
-        input = new ObjectInputStream(socket.getInputStream());
-    }
-
-    public void sendObject(Object obj) throws IOException {
-        output.writeObject(obj);
-    }
-
-    public Object receiveObject() throws IOException, ClassNotFoundException {
-        return input.readObject();
-    }
-
-    public void close() throws IOException {
-        input.close();
-        output.close();
-        socket.close();
+    public void sendObject(Object object) throws IOException {
+        outputStream.writeObject(object);
+        outputStream.flush();
     }
 }
