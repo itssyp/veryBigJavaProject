@@ -29,7 +29,7 @@ public class StartWindow extends Application {
         Label portLabel = new Label("Port:");
         grid.add(portLabel, 0, 0);
 
-        TextField portTextField = new TextField();
+        TextField portTextField = new TextField("12345");
         grid.add(portTextField, 1, 0);
 
         Button hostButton = new Button("Host as Left Player");
@@ -41,7 +41,7 @@ public class StartWindow extends Application {
         Label ipLabel = new Label("IP Address:");
         grid.add(ipLabel, 0, 2);
 
-        TextField ipTextField = new TextField();
+        TextField ipTextField = new TextField("localhost");
         grid.add(ipTextField, 1, 2);
 
         hostButton.setOnAction(event -> {
@@ -52,7 +52,9 @@ public class StartWindow extends Application {
                     Platform.runLater(() -> {
                         try {
                             GameWindow gameWindow = null;
-                            gameWindow = new GameWindow(new ConnectionHandler(socket, gameWindow), true);
+                            ConnectionHandler coni = new ConnectionHandler(socket, null);
+                            gameWindow = new GameWindow(coni, true);
+                            gameWindow.setConWin();
                             gameWindow.show();
                             primaryStage.close();
                         } catch (IOException e) {
@@ -74,7 +76,9 @@ public class StartWindow extends Application {
                     Platform.runLater(() -> {
                         try {
                             GameWindow gameWindow = null;
-                            gameWindow = new GameWindow(new ConnectionHandler(socket, gameWindow), false);
+                            ConnectionHandler coni = new ConnectionHandler(socket, null);
+                            gameWindow = new GameWindow(coni, false);
+                            gameWindow.setConWin();
                             gameWindow.show();
                             primaryStage.close();
                         } catch (IOException e) {

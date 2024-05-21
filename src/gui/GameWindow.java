@@ -23,6 +23,8 @@ public class GameWindow extends Stage {
     private final ConnectionHandler connection;
     private final Canvas canvas;
     private final GameField gameField;
+    private boolean draggingWall;
+    private int prevX, prevY;
 
     private final boolean isLeftPlayer;
 
@@ -30,10 +32,10 @@ public class GameWindow extends Stage {
         this.connection = connection;
         this.isLeftPlayer = isLeftPlayer;
         this.gameField = new GameField(50, 50, this, isLeftPlayer); // Example dimensions, adjust as needed
-        this.gameField.spawnAnimals(4, 2); // Example: 10 sheep and 5 wolves
+        this.gameField.spawnAnimals(1, 0); // Example: 10 sheep and 5 wolves
 
         StackPane root = new StackPane();
-        canvas = new Canvas(800, 600);
+        canvas = new Canvas(500, 500);
         root.getChildren().add(canvas);
         Scene scene = new Scene(root);
         if (isLeftPlayer){
@@ -44,7 +46,9 @@ public class GameWindow extends Stage {
         this.setScene(scene);
         drawField();
 
-        canvas.addEventHandler(MouseEvent.MOUSE_CLICKED, this::handleMouseClick);
+        canvas.addEventHandler(MouseEvent.MOUSE_PRESSED, this::handleMousePressed);
+        canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, this::handleMouseDragged);
+        canvas.addEventHandler(MouseEvent.MOUSE_RELEASED, this::handleMouseReleased);
 
         // Send initial game state to the other player
         try {
@@ -61,6 +65,33 @@ public class GameWindow extends Stage {
         }));
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
+    }
+
+    private void handleMousePressed(MouseEvent event) {
+        if (event.getButton() == MouseButton.PRIMARY) {
+            int x = (int) (event.getX() / 10);
+            int y = (int) (event.getY() / 10);
+            gameField.addWall(x, y);
+            draggingWall = true;
+            prevX = x;
+            prevY = y;
+        }
+    }
+
+    private void handleMouseDragged(MouseEvent event) {
+        if (draggingWall) {
+            int x = (int) (event.getX() / 10);
+            int y = (int) (event.getY() / 10);
+            if (x != prevX || y != prevY) {
+                gameField.addWall(x, y);
+                prevX = x;
+                prevY = y;
+            }
+        }
+    }
+
+    private void handleMouseReleased(MouseEvent event) {
+        draggingWall = false;
     }
 
     private void handleMouseClick(MouseEvent event) {
@@ -101,6 +132,7 @@ public class GameWindow extends Stage {
 
     public void addAnimalToOtherField(Animal animal, int x, int y) {
         try {
+            System.out.println("Sending Animal to Other Field: x=" + x + " y=" + y);
             connection.sendObject(animal);
         } catch (IOException e) {
             e.printStackTrace();
@@ -108,8 +140,11 @@ public class GameWindow extends Stage {
     }
 
     public void handleReceivedAnimal(Animal animal) {
+        System.out.println("Handling Received Animal: x=" + animal.getX() + " y=" + animal.getY());
         animal.setGameField(gameField);
+        System.out.println("After Setting GameField: x=" + animal.getX() + " y=" + animal.getY());
         gameField.addAnimal(animal);
+        //drafield
     }
 
     public void updateField() {
@@ -120,5 +155,9 @@ public class GameWindow extends Stage {
     private void showError(String message) {
         // Show error dialog
         System.err.println(message);
+    }
+
+    public void setConWin(){
+        connection.setGameWindow(this);
     }
 }

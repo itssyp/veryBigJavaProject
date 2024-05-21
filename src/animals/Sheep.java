@@ -13,12 +13,13 @@ public class Sheep extends Animal {
     public void move() {
         // Randomly move sheep to adjacent position
         if (!alive) return;
-        int dx = random.nextInt(3) - 1;
-        int dy = random.nextInt(3) - 1;
+        int dx = - 1;
+        int dy = 0;
         if (!gameField.isWall(x + dx, y + dy)) {
             x = x + dx; // Ensure x stays within bounds
             y = Math.max(0, Math.min(gameField.getHeight(), y + dy)); // Ensure y stays within bounds
         }
+        System.out.println(x);
     }
 
     @Override

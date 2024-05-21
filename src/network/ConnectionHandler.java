@@ -28,9 +28,10 @@ public class ConnectionHandler {
                 Object receivedObject = inputStream.readObject();
                 if (receivedObject instanceof Animal) {
                     Animal receivedAnimal = (Animal) receivedObject;
+                    System.out.println("Received Animal: x=" + receivedAnimal.getX() + " y=" + receivedAnimal.getY());
                     if (gameWindow != null) {
                         gameWindow.handleReceivedAnimal(receivedAnimal);
-                    }
+                    } else {System.out.println("OMFG WINDOW IS NULL");}
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -39,7 +40,16 @@ public class ConnectionHandler {
     }
 
     public void sendObject(Object object) throws IOException {
+        if (object instanceof Animal) {
+            Animal animal = (Animal) object;
+            System.out.println("Sending Animal: x=" + animal.getX() + " y=" + animal.getY());
+        }
+
         outputStream.writeObject(object);
         outputStream.flush();
+    }
+
+    public void setGameWindow(GameWindow gameWindow){
+        this.gameWindow = gameWindow;
     }
 }

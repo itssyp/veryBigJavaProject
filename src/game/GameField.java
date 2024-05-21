@@ -25,11 +25,15 @@ public class GameField {
         this.height = height;
         this.gameWindow = gameWindow;
         this.isLeftPlayer = isLeftPlayer;
+        System.out.println(isLeftPlayer);
     }
 
     public void addAnimal(Animal animal) {
         Point position = new Point(animal.getX(), animal.getY());
+        animal.resurrect();
+        System.out.println("UJ ALLAT GECI");
         animals.put(position, animal);
+        //gameWindow.updateField()
         new Thread(animal).start(); // Start a new thread for each animal
     }
 
@@ -43,10 +47,21 @@ public class GameField {
     }
 
     public void animalCrossedBoundary(Animal animal, Animal.Direction direction) {
+        if (direction == Animal.Direction.LEFT && isLeftPlayer){
+            animal.setX(0);
+            return;
+        }
+        if (direction == Animal.Direction.RIGHT && !isLeftPlayer){
+            animal.setX(width - 1);
+            return;
+        }
+        Point cur = new Point(animal.getX(), animal.getY());
+
+        animal.die();
         if ((direction == Animal.Direction.LEFT && !isLeftPlayer) || (direction == Animal.Direction.RIGHT && isLeftPlayer)) {
             int newX = (direction == Animal.Direction.LEFT) ? width - 1 : 0;
             animal.setX(newX);
-
+            System.out.println(newX);
             gameWindow.addAnimalToOtherField(animal, newX, animal.getY());
         }
     }
@@ -74,16 +89,21 @@ public class GameField {
     }
 
     public void spawnAnimals(int numSheep, int numWolves) {
+        //if (!isLeftPlayer)
         for (int i = 0; i < numSheep; i++) {
             int x = random.nextInt(width);
             int y = random.nextInt(height);
-            addAnimal(new Sheep(x, y, this));
+            Sheep sheep = new Sheep(x, y, this);
+            addAnimal(sheep);
+            //new Thread(sheep).start();
         }
 
         for (int i = 0; i < numWolves; i++) {
             int x = random.nextInt(width);
             int y = random.nextInt(height);
-            addAnimal(new Wolf(x, y, this));
+            Wolf wolf = new Wolf(x, y, this);
+            addAnimal(wolf);
+            //new Thread(wolf).start();
         }
     }
 

@@ -27,6 +27,7 @@ public abstract class Animal implements Runnable, Serializable {
         int fieldWidth = gameField.getWidth();
 
         if (x < 0) {
+            System.out.println("SHE LEFT$");
             gameField.animalCrossedBoundary(this, Direction.LEFT);
         } else if (x >= fieldWidth) {
             gameField.animalCrossedBoundary(this, Direction.RIGHT);
@@ -39,7 +40,7 @@ public abstract class Animal implements Runnable, Serializable {
             move();
             checkBoundary();
             try {
-                Thread.sleep(100); // Adjust sleep time as needed
+                Thread.sleep(1000); // Adjust sleep time as needed
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -52,6 +53,7 @@ public abstract class Animal implements Runnable, Serializable {
     public void setY(int y) { this.y = y; }
     public boolean isAlive() { return alive; }
     public void die() { alive = false; }
+    public void resurrect() { alive = true; }
 
     public void setGameField(GameField gameField) {
         this.gameField = gameField;
