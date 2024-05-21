@@ -71,21 +71,6 @@ public class GameWindow extends Stage {
         }
     }
 
-//    private void listenForUpdates() {
-//        try {
-//            while (true) {
-//                Object obj = connection.receiveObject();
-//                if (obj instanceof ConcurrentHashMap) {
-//                    //ConcurrentHashMap<Point, Animal> receivedAnimals = (ConcurrentHashMap<Point, Animal>) obj;
-//                    //gameField.getAnimals().putAll(receivedAnimals);
-//                    updateField();
-//                }
-//            }
-//        } catch (IOException | ClassNotFoundException e) {
-//            showError("Connection lost");
-//        }
-//    }
-
     private void updateGameField() {
         gameField.updateField();
         drawField();

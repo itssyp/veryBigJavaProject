@@ -2,12 +2,11 @@ package network;
 
 import animals.Animal;
 import gui.GameWindow;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+
+import java.io.*;
 import java.net.Socket;
 
-public class ConnectionHandler extends Thread {
+public class ConnectionHandler {
     private Socket socket;
     private ObjectOutputStream outputStream;
     private ObjectInputStream inputStream;
@@ -18,16 +17,20 @@ public class ConnectionHandler extends Thread {
         this.gameWindow = gameWindow;
         this.outputStream = new ObjectOutputStream(socket.getOutputStream());
         this.inputStream = new ObjectInputStream(socket.getInputStream());
+
+        // Start a thread to listen for incoming messages
+        new Thread(this::listenForMessages).start();
     }
 
-    @Override
-    public void run() {
+    private void listenForMessages() {
         try {
             while (true) {
                 Object receivedObject = inputStream.readObject();
                 if (receivedObject instanceof Animal) {
                     Animal receivedAnimal = (Animal) receivedObject;
-                    gameWindow.handleReceivedAnimal(receivedAnimal);
+                    if (gameWindow != null) {
+                        gameWindow.handleReceivedAnimal(receivedAnimal);
+                    }
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
